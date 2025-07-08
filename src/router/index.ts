@@ -2,6 +2,20 @@ import { createRouter, createWebHistory } from "vue-router";
 
 import { useAuthStore } from "@/stores/auth";
 
+// Define user roles for better type safety
+export type UserRole = "admin" | "teacher" | "student";
+
+// Define route meta types for better TypeScript support
+declare module "vue-router" {
+  interface RouteMeta {
+    requiresAuth?: boolean;
+    requiresGuest?: boolean;
+    roles?: UserRole[];
+    title?: string;
+    icon?: string;
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -9,54 +23,201 @@ const router = createRouter({
       path: "/login",
       name: "login",
       component: () => import("@/views/LoginView.vue"),
-      meta: { requiresGuest: true },
+      meta: {
+        requiresGuest: true,
+        title: "Login",
+      },
     },
     {
       path: "/register",
       name: "register",
       component: () => import("@/views/RegisterView.vue"),
-      meta: { requiresGuest: true },
+      meta: {
+        requiresGuest: true,
+        title: "Register",
+      },
     },
     {
       path: "/",
       name: "dashboard",
       component: () => import("@/views/DashboardView.vue"),
-      meta: { requiresAuth: true },
+      meta: {
+        requiresAuth: true,
+        roles: ["admin", "teacher"],
+        title: "Dashboard",
+        icon: "HomeIcon",
+      },
     },
     {
       path: "/students",
       name: "students",
       component: () => import("@/views/StudentsView.vue"),
-      meta: { requiresAuth: true },
+      meta: {
+        requiresAuth: true,
+        roles: ["admin", "teacher"],
+        title: "Students",
+        icon: "UsersIcon",
+      },
     },
     {
       path: "/analytics",
       name: "analytics",
       component: () => import("@/views/AnalyticsView.vue"),
-      meta: { requiresAuth: true, roles: ["administrator"] },
+      meta: {
+        requiresAuth: true,
+        roles: ["admin"],
+        title: "Analytics",
+        icon: "ChartBarIcon",
+      },
+    },
+    // {
+    //   path: "/courses",
+    //   name: "courses",
+    //   component: () => import("@/views/CoursesView.vue"),
+    //   meta: {
+    //     requiresAuth: true,
+    //     roles: ["admin", "teacher", "student"],
+    //     title: "Courses",
+    //     icon: "BookOpenIcon",
+    //   },
+    // },
+    // {
+    //   path: "/assignments",
+    //   name: "assignments",
+    //   component: () => import("@/views/AssignmentsView.vue"),
+    //   meta: {
+    //     requiresAuth: true,
+    //     roles: ["teacher", "student"],
+    //     title: "Assignments",
+    //     icon: "ClipboardDocumentListIcon",
+    //   },
+    // },
+    // {
+    //   path: "/settings",
+    //   name: "settings",
+    //   component: () => import("@/views/SettingsView.vue"),
+    //   meta: {
+    //     requiresAuth: true,
+    //     roles: ["admin", "teacher", "student", ],
+    //     title: "Settings",
+    //     icon: "Cog6ToothIcon",
+    //   },
+    // },
+    // {
+    //   path: "/admin",
+    //   name: "admin",
+    //   component: () => import("@/views/AdminView.vue"),
+    //   meta: {
+    //     requiresAuth: true,
+    //     roles: ["admin"],
+    //     title: "Administration",
+    //     icon: "ShieldCheckIcon",
+    //   },
+    //   children: [
+    //     {
+    //       path: "users",
+    //       name: "admin-users",
+    //       component: () => import("@/views/admin/UsersView.vue"),
+    //       meta: {
+    //         requiresAuth: true,
+    //         roles: ["admin"],
+    //         title: "User Management",
+    //       },
+    //     },
+    //     {
+    //       path: "settings",
+    //       name: "admin-settings",
+    //       component: () => import("@/views/admin/SettingsView.vue"),
+    //       meta: {
+    //         requiresAuth: true,
+    //         roles: ["admin"],
+    //         title: "System Settings",
+    //       },
+    //     },
+    //   ],
+    // },
+    // Unauthorized access page
+    {
+      path: "/unauthorized",
+      name: "unauthorized",
+      component: () => import("@/views/UnauthorizedView.vue"),
+      meta: {
+        title: "Unauthorized Access",
+      },
     },
     {
       path: "/:pathMatch(.*)*",
       name: "not-found",
       component: () => import("@/views/NotFoundView.vue"),
+      meta: {
+        title: "Page Not Found",
+      },
     },
   ],
 });
 
-router.beforeEach((to, from, next) => {
+// Enhanced router guard with proper authorization
+router.beforeEach(async (to, _, next) => {
+  // Initialize auth store
   const authStore = useAuthStore();
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next("/login");
-  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next("/");
+  // Wait for auth store to initialize if needed
+  await authStore.init();
+
+  const isAuthenticated = authStore.isAuthenticated;
+  const userRole = authStore.user?.role as UserRole | undefined;
+
+  console.log("Navigation Guard:", {
+    to: to.path,
+    isAuthenticated,
+    userRole,
+    requiredRoles: to.meta.roles,
+  });
+
+  // Set document title
+  document.title = `${to.meta.title || "App"} | EduTracker`;
+
+  // Check if route requires guest access (login/register pages)
+  if (to.meta.requiresGuest && isAuthenticated) {
+    console.log(
+      "User is authenticated, redirecting from guest page to dashboard"
+    );
+    return next({ name: "dashboard" });
   }
-  // else if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
-  //   next("/");
-  // }
-  else {
-    next();
+
+  // Check if route requires authentication
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    console.log("User not authenticated, redirecting to login");
+    return next({
+      name: "login",
+      query: { redirect: to.fullPath },
+    });
   }
+
+  // Check if user has required role for the route
+  if (to.meta.requiresAuth && to.meta.roles && userRole) {
+    if (!to.meta.roles.includes(userRole)) {
+      console.warn(
+        `Access denied: User with role '${userRole}' attempted to access route requiring roles: ${to.meta.roles.join(
+          ", "
+        )}`
+      );
+
+      // Show a toast notification (optional)
+      // You can implement a toast/notification system here
+
+      return next({
+        name: "unauthorized",
+        query: {
+          from: to.fullPath,
+          required: to.meta.roles.join(","),
+        },
+      });
+    }
+  }
+
+  console.log("Navigation allowed");
+  next();
 });
 
 export default router;
@@ -67,7 +228,6 @@ declare global {
     readonly BASE_URL?: string;
     // add other env variables here if needed
   }
-
   interface ImportMeta {
     readonly env: ImportMetaEnv;
   }

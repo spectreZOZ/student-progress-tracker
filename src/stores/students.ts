@@ -16,6 +16,8 @@ export const useStudentsStore = defineStore("students", {
     studentError: null as string | null,
     exportError: null as string | null, // Add export error state
     total: 0,
+    count: 0,
+    prevCount: 0,
     activitiesTotal: 0,
     // Filters and pagination
     filters: {
@@ -61,6 +63,8 @@ export const useStudentsStore = defineStore("students", {
         const res = await api.get("/users", { params });
         console.log("Fetched students:", res.data.data);
         this.students = res.data.data || [];
+        this.count = res.data.count || 0;
+        this.prevCount = res.data.pagination.previousCount || 0;
         this.total = res.data.total || 0;
       } catch (err: any) {
         this.error = err.response?.data?.message || "Failed to fetch students";

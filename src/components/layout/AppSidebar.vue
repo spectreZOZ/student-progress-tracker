@@ -19,7 +19,7 @@
     <!-- Navigation -->
     <nav class="flex-1 space-y-1 px-2 py-4">
       <router-link
-        v-for="item in navigation"
+        v-for="item in filteredNavItems"
         :key="item.name"
         :to="item.href"
         :class="[
@@ -40,6 +40,29 @@
         />
         {{ item.name }}
       </router-link>
+
+      <!-- Nested navigation items -->
+      <div
+        v-for="item in filteredNavItems.filter(
+          (item) => item.children && item.children.length && isActive(item.href)
+        )"
+        :key="`${item.name}-children`"
+        class="ml-8 mt-1 space-y-1"
+      >
+        <router-link
+          v-for="child in item.children"
+          :key="child.name"
+          :to="child.href"
+          :class="[
+            isActive(child.href)
+              ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-[#101010] dark:hover:text-white',
+            'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
+          ]"
+        >
+          {{ child.name }}
+        </router-link>
+      </div>
     </nav>
 
     <!-- Footer -->
@@ -52,7 +75,7 @@
               :src="
                 authStore.user?.avatar ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  authStore.user?.name
+                  authStore.user?.name || ''
                 )}&background=${
                   uiStore.isDarkMode ? '1f2937' : '000000'
                 }&color=${uiStore.isDarkMode ? 'ffffff' : 'ffffff'}`
@@ -83,9 +106,16 @@ import {
   UsersIcon,
   ChartBarIcon,
   XMarkIcon,
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  Cog6ToothIcon,
+  ShieldCheckIcon,
 } from "@heroicons/vue/24/outline";
 import { useAuthStore } from "@/stores/auth";
 import { useUIStore } from "@/stores/ui";
+
+// Define user roles for better type safety
+type UserRole = "admin" | "teacher" | "student";
 
 defineEmits<{
   close: [];
@@ -95,26 +125,86 @@ const route = useRoute();
 const authStore = useAuthStore();
 const uiStore = useUIStore();
 
-const navigation = computed(() => {
-  const baseItems = [{ name: "Dashboard", href: "/", icon: HomeIcon }];
+// Get current user role with type safety
+const userRole = computed<UserRole>(
+  () => (authStore.user?.role as UserRole) || "student"
+);
 
-  const roleAccessed = ["admin", "teacher"];
+// Define all navigation items with their role requirements
+const navigationItems = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: HomeIcon,
+    roles: ["admin", "teacher"],
+  },
+  {
+    name: "Students",
+    href: "/students",
+    icon: UsersIcon,
+    roles: ["admin", "teacher"],
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: ChartBarIcon,
+    roles: ["admin"],
+  },
+  {
+    name: "Courses",
+    href: "/courses",
+    icon: BookOpenIcon,
+    roles: ["admin", "teacher", "student"],
+  },
+  {
+    name: "Assignments",
+    href: "/assignments",
+    icon: ClipboardDocumentListIcon,
+    roles: ["teacher", "student"],
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Cog6ToothIcon,
+    roles: ["admin", "teacher", "student"],
+  },
+  {
+    name: "Administration",
+    href: "/admin",
+    icon: ShieldCheckIcon,
+    roles: ["admin"],
+    children: [
+      {
+        name: "User Management",
+        href: "/admin/users",
+        roles: ["admin"],
+      },
+      {
+        name: "System Settings",
+        href: "/admin/settings",
+        roles: ["admin"],
+      },
+    ],
+  },
+];
 
-  if (authStore.user?.role === "admin") {
-    baseItems.push({
-      name: "Analytics",
-      href: "/analytics",
-      icon: ChartBarIcon,
-    });
-  }
+// Filter navigation items based on user role
+const filteredNavItems = computed(() => {
+  return navigationItems.filter((item) => {
+    const hasAccess = item.roles.includes(userRole.value);
 
-  if (roleAccessed.includes(authStore.user?.role)) {
-    baseItems.push({ name: "Students", href: "/students", icon: UsersIcon });
-  }
+    // Also filter children if they exist
+    if (hasAccess && item.children) {
+      item.children = item.children.filter((child) =>
+        child.roles.includes(userRole.value)
+      );
+    }
 
-  return baseItems;
+    return hasAccess;
+  });
 });
 
+// Check if a route is active (keep your existing logic)
 const isActive = (href: string) => {
   if (href === "/") {
     return route.path === "/";

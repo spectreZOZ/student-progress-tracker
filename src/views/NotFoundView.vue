@@ -4,7 +4,7 @@
   >
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="text-center">
-        <div class="mx-auto h-24 w-24 text-gray-400">
+        <div class="mx-auto h-24 w-24 text-red-500">
           <ExclamationTriangleIcon class="h-24 w-24" />
         </div>
         <h1 class="mt-6 text-6xl font-bold text-gray-900 dark:text-white">
@@ -19,7 +19,7 @@
           Sorry, we couldn't find the page you're looking for.
         </p>
         <div class="mt-6 flex items-center justify-center gap-x-6">
-          <router-link to="/" class="btn-primary">
+          <router-link to="/" class="btn btn-primary">
             <HomeIcon class="h-4 w-4 mr-2" />
             Go back home
           </router-link>

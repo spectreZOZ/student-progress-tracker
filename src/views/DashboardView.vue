@@ -22,6 +22,7 @@
                     {{ stat.value }}
                   </div>
                   <div
+                    v-if="stat.change"
                     class="ml-2 flex items-baseline text-sm font-semibold"
                     :class="
                       stat.changeType === 'increase'
@@ -43,22 +44,107 @@
         </div>
       </div>
 
-      <!-- Charts Row -->
+      <!-- Activity Statistics -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Progress Chart -->
+        <!-- Activity Stats -->
         <div class="card">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Student Progress Overview
+            Activity Statistics
           </h3>
-          <ProgressChart :data="progressChartData" />
+          <div v-if="isLoadingStats" class="flex justify-center py-8">
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"
+            ></div>
+          </div>
+          <div v-else-if="activityStats" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                  {{ activityStats.totalActivities }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  Total Activities
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                  {{ Object.keys(activityStats.activitiesByType || {}).length }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  Activity Types
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Activity Types -->
+            <div v-if="activityStats.activitiesByType">
+              <h4
+                class="text-sm font-medium text-gray-900 dark:text-white mb-2"
+              >
+                Top Activity Types
+              </h4>
+              <div class="space-y-2">
+                <div
+                  v-for="[type, count] in Object.entries(
+                    activityStats.activitiesByType
+                  ).slice(0, 5)"
+                  :key="type"
+                  class="flex justify-between items-center"
+                >
+                  <span
+                    class="text-sm text-gray-600 dark:text-gray-300 capitalize"
+                  >
+                    {{ type.replace("_", " ") }}
+                  </span>
+                  <span
+                    class="text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    {{ count }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Activity Chart -->
+        <!-- Top Active Students -->
         <div class="card">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Weekly Activity
+            Most Active Students
           </h3>
-          <ActivityChart :data="activityChartData" />
+          <div v-if="isLoadingStats" class="flex justify-center py-8">
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"
+            ></div>
+          </div>
+          <div v-else-if="activityStats?.topStudents" class="space-y-3">
+            <div
+              v-for="student in activityStats.topStudents.slice(0, 5)"
+              :key="student.studentId"
+              class="flex items-center justify-between"
+            >
+              <div class="flex items-center space-x-3">
+                <img
+                  class="h-8 w-8 rounded-full"
+                  :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    student.studentName
+                  )}&background=3b82f6&color=fff`"
+                  :alt="student.studentName"
+                />
+                <span class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ student.studentName }}
+                </span>
+              </div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                {{ student.activityCount }} activities
+              </span>
+            </div>
+          </div>
+          <div v-else class="text-center py-8">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              No activity data available
+            </p>
+          </div>
         </div>
       </div>
 
@@ -75,7 +161,64 @@
             View all
           </router-link>
         </div>
-        <RecentActivity :activities="recentActivities" />
+
+        <div v-if="isLoadingActivities" class="flex justify-center py-8">
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"
+          ></div>
+        </div>
+
+        <div v-else-if="recentActivities.length > 0" class="space-y-4">
+          <div
+            v-for="activity in recentActivities"
+            :key="activity.id"
+            class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+                >
+                  <component
+                    :is="getActivityIcon(activity.type)"
+                    class="h-4 w-4 text-primary-600 dark:text-primary-400"
+                  />
+                </div>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ activity.description || activity.action || activity.type }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{
+                    formatDistanceToNow(new Date(activity.createdAt), {
+                      addSuffix: true,
+                    })
+                  }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span
+                v-if="activity.subject"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+              >
+                {{ activity.subject }}
+              </span>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              >
+                {{ activity.type }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-8">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            No recent activities
+          </p>
+        </div>
       </div>
 
       <!-- At-Risk Students Alert -->
@@ -117,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   UsersIcon,
   AcademicCapIcon,
@@ -126,47 +269,76 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   ExclamationTriangleIcon,
+  BookOpenIcon,
+  PlayIcon,
+  DocumentTextIcon,
+  ChatBubbleLeftIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/vue/24/outline";
+import { formatDistanceToNow } from "date-fns";
 import AppLayout from "@/components/layout/AppLayout.vue";
-import ProgressChart from "@/components/dashboard/ProgressChart.vue";
-import ActivityChart from "@/components/dashboard/ActivityChart.vue";
-import RecentActivity from "@/components/dashboard/RecentActivity.vue";
 import { useStudentsStore } from "@/stores/students";
 import { useAuthStore } from "@/stores/auth";
+import activitiesService, {
+  type ActivityStats,
+  type Activity,
+} from "@/services/activitiesService";
 
 const studentsStore = useStudentsStore();
 const authStore = useAuthStore();
+
+// Reactive state
+const activityStats = ref<ActivityStats | null>(null);
+const recentActivities = ref<Activity[]>([]);
+const isLoadingStats = ref(false);
+const isLoadingActivities = ref(false);
+
+const calculateChange = (newNumber: number, prevNumber: number): number => {
+  // If previous number is 0
+  if (prevNumber === 0) {
+    // If new number is also 0, return 0% change
+    if (newNumber === 0) return 0;
+    // If new number is not 0, return 100% increase
+    return 100;
+  }
+
+  const change = ((newNumber - prevNumber) / prevNumber) * 100;
+  return Math.round(change);
+};
 
 const stats = computed(() => [
   {
     name: "Total Students",
     value: studentsStore.students.length,
-    change: "+4.75%",
-    changeType: "increase",
+    change: `${calculateChange(studentsStore.count, studentsStore.prevCount)}%`,
+    changeType:
+      studentsStore.count > studentsStore.prevCount ? "increase" : "decrease",
     icon: UsersIcon,
   },
   {
     name: "Average Progress",
     value: `${Math.round(
-      studentsStore.students.reduce((acc, s) => acc + s.overallProgress, 0) /
-        studentsStore.students.length || 0
+      studentsStore.students.reduce(
+        (acc, s) => acc + (s.overallProgress || 0),
+        0
+      ) / studentsStore.students.length || 0
     )}%`,
-    change: "+2.3%",
+    // change: "+2.3%",
     changeType: "increase",
     icon: AcademicCapIcon,
   },
   {
     name: "Active This Week",
     value: studentsStore.students.filter((s) => s.status === "active").length,
-    change: "+1.2%",
+    // change: "+1.2%",
     changeType: "increase",
     icon: ClockIcon,
   },
   {
-    name: "Completed Assignments",
-    value: "156",
-    change: "-3.1%",
-    changeType: "decrease",
+    name: "Total Activities",
+    value: activityStats.value?.totalActivities || 0,
+    change: null,
+    changeType: "increase",
     icon: TrophyIcon,
   },
 ]);
@@ -175,36 +347,65 @@ const atRiskStudents = computed(() =>
   studentsStore.students.filter((s) => s.status === "at-risk")
 );
 
-const recentActivities = computed(() => studentsStore.activities.slice(0, 5));
+// Get appropriate icon for activity type
+const getActivityIcon = (type: string) => {
+  const iconMap: Record<string, any> = {
+    login: UsersIcon,
+    assignment_submit: DocumentTextIcon,
+    quiz_complete: AcademicCapIcon,
+    lesson_view: BookOpenIcon,
+    forum_post: ChatBubbleLeftIcon,
+    file_download: ArrowDownTrayIcon,
+  };
+  return iconMap[type] || PlayIcon;
+};
 
-const progressChartData = computed(() => ({
-  labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-  datasets: [
-    {
-      label: "Average Progress",
-      data: [65, 72, 78, 85],
-      borderColor: "rgb(59, 130, 246)",
-      backgroundColor: "rgba(59, 130, 246, 0.1)",
-      tension: 0.1,
-    },
-  ],
-}));
+// Fetch activity statistics
+const fetchActivityStats = async () => {
+  isLoadingStats.value = true;
+  try {
+    const result = await activitiesService.getActivityStats({
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0], // Last 30 days
+    });
 
-const activityChartData = computed(() => ({
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  datasets: [
-    {
-      label: "Active Students",
-      data: [12, 19, 15, 25, 22, 8, 5],
-      backgroundColor: "rgba(59, 130, 246, 0.5)",
-      borderColor: "rgb(59, 130, 246)",
-      borderWidth: 1,
-    },
-  ],
-}));
+    if (result.success && result.data) {
+      activityStats.value = result.data;
+    }
+  } catch (error) {
+    console.error("Error fetching activity stats:", error);
+  } finally {
+    isLoadingStats.value = false;
+  }
+};
+
+// Fetch recent activities
+const fetchRecentActivities = async () => {
+  isLoadingActivities.value = true;
+  try {
+    const result = await activitiesService.getActivities({
+      page: 1,
+      limit: 10,
+    });
+
+    if (result.success && result.data) {
+      recentActivities.value = result.data.data || [];
+    }
+  } catch (error) {
+    console.error("Error fetching recent activities:", error);
+  } finally {
+    isLoadingActivities.value = false;
+  }
+};
+
+const allowedRoles = ["admin", "teacher"];
 
 onMounted(() => {
-  studentsStore.fetchStudents();
-  studentsStore.fetchActivities();
+  if (allowedRoles.includes(authStore?.user?.role)) {
+    studentsStore.fetchStudents();
+    fetchActivityStats();
+    fetchRecentActivities();
+  }
 });
 </script>
