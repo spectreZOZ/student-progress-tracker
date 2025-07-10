@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white dark:bg-black shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800"
+    class="bg-white dark:bg-black shadow-lg rounded-lg border border-gray-200 dark:border-gray-800"
   >
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
@@ -152,6 +152,32 @@
                           View details
                         </button>
                       </MenuItem>
+
+                      <!-- Classroom Actions -->
+                      <MenuItem v-slot="{ active }">
+                        <button
+                          @click="openEnrollModal(student)"
+                          :class="[
+                            active ? 'bg-gray-100 dark:bg-[#121212]' : '',
+                            'block w-full px-4 py-2 text-left text-sm font-medium text-black dark:text-white transition-colors',
+                          ]"
+                        >
+                          Enroll in classroom
+                        </button>
+                      </MenuItem>
+
+                      <MenuItem v-slot="{ active }">
+                        <button
+                          @click="openUnenrollModal(student)"
+                          :class="[
+                            active ? 'bg-gray-100 dark:bg-[#121212]' : '',
+                            'block w-full px-4 py-2 text-left text-sm font-medium text-black dark:text-white transition-colors',
+                          ]"
+                        >
+                          Unenroll from classroom
+                        </button>
+                      </MenuItem>
+
                       <MenuItem v-slot="{ active }">
                         <button
                           :class="[
@@ -181,19 +207,45 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Enroll Modal -->
+    <EnrollStudentModal
+      :is-open="showEnrollModal"
+      :student="selectedStudent"
+      @close="closeEnrollModal"
+      @enrolled="handleEnrollSuccess"
+    />
+
+    <!-- Unenroll Modal -->
+    <UnenrollStudentModal
+      :is-open="showUnenrollModal"
+      :student="selectedStudent"
+      @close="closeUnenrollModal"
+      @unenrolled="handleUnenrollSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
-import { EllipsisVerticalIcon } from "@heroicons/vue/24/outline";
+import {
+  EllipsisVerticalIcon,
+  ChevronUpDownIcon,
+} from "@heroicons/vue/24/outline";
 import { useStudentsStore } from "@/stores/students";
 import { useUIStore } from "@/stores/ui";
 import { formatDistanceToNow } from "date-fns";
+import EnrollStudentModal from "@/components/classrooms/EnrollStudentModal.vue";
+import UnenrollStudentModal from "@/components/classrooms/UnenrollStudentModal.vue";
 
 const studentsStore = useStudentsStore();
 const uiStore = useUIStore();
+
+// Modal state
+const showEnrollModal = ref(false);
+const showUnenrollModal = ref(false);
+const selectedStudent = ref(null);
 
 const columns = [
   { key: "name", label: "Student", sortable: true },
@@ -221,14 +273,36 @@ const toggleSelectAll = () => {
   }
 };
 
-// const handleSort = (field: keyof Student) => {
-//   const currentSort = studentsStore.sort;
-//   const direction =
-//     currentSort.field === field && currentSort.direction === "asc"
-//       ? "desc"
-//       : "asc";
-//   studentsStore.updateSort({ field, direction });
-// };
+// Modal handlers
+const openEnrollModal = (student: any) => {
+  selectedStudent.value = student;
+  showEnrollModal.value = true;
+};
+
+const closeEnrollModal = () => {
+  showEnrollModal.value = false;
+  selectedStudent.value = null;
+};
+
+const openUnenrollModal = (student: any) => {
+  selectedStudent.value = student;
+  showUnenrollModal.value = true;
+};
+
+const closeUnenrollModal = () => {
+  showUnenrollModal.value = false;
+  selectedStudent.value = null;
+};
+
+const handleEnrollSuccess = () => {
+  closeEnrollModal();
+  // Optionally refresh student data or show success message
+};
+
+const handleUnenrollSuccess = () => {
+  closeUnenrollModal();
+  // Optionally refresh student data or show success message
+};
 
 const getProgressColor = (progress: number) => {
   if (progress >= 80) return "bg-green-500";

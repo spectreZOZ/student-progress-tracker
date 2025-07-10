@@ -127,6 +127,7 @@ const pageTitle = computed(() => {
     dashboard: "Dashboard",
     students: "Students",
     analytics: "Analytics",
+    assignments: "Assignments",
   };
   return titles[route.name as string] || "Student Progress Tracker";
 });

@@ -42,7 +42,7 @@
       </router-link>
 
       <!-- Nested navigation items -->
-      <div
+      <!-- <div
         v-for="item in filteredNavItems.filter(
           (item) => item.children && item.children.length && isActive(item.href)
         )"
@@ -62,7 +62,7 @@
         >
           {{ child.name }}
         </router-link>
-      </div>
+      </div> -->
     </nav>
 
     <!-- Footer -->
@@ -150,42 +150,48 @@ const navigationItems = [
     icon: ChartBarIcon,
     roles: ["admin"],
   },
+  // {
+  //   name: "Courses",
+  //   href: "/courses",
+  //   icon: BookOpenIcon,
+  //   roles: ["admin", "teacher", "student"],
+  // },
   {
-    name: "Courses",
-    href: "/courses",
+    name: "Classrooms",
+    href: "/classrooms",
     icon: BookOpenIcon,
-    roles: ["admin", "teacher", "student"],
+    roles: ["teacher", "student", "admin"],
   },
   {
     name: "Assignments",
     href: "/assignments",
     icon: ClipboardDocumentListIcon,
-    roles: ["teacher", "student"],
+    roles: ["teacher", "student", "admin"],
   },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Cog6ToothIcon,
-    roles: ["admin", "teacher", "student"],
-  },
-  {
-    name: "Administration",
-    href: "/admin",
-    icon: ShieldCheckIcon,
-    roles: ["admin"],
-    children: [
-      {
-        name: "User Management",
-        href: "/admin/users",
-        roles: ["admin"],
-      },
-      {
-        name: "System Settings",
-        href: "/admin/settings",
-        roles: ["admin"],
-      },
-    ],
-  },
+  // {
+  //   name: "Settings",
+  //   href: "/settings",
+  //   icon: Cog6ToothIcon,
+  //   roles: ["admin", "teacher", "student"],
+  // },
+  // {
+  //   name: "Administration",
+  //   href: "/admin",
+  //   icon: ShieldCheckIcon,
+  //   roles: ["admin"],
+  //   children: [
+  //     {
+  //       name: "User Management",
+  //       href: "/admin/users",
+  //       roles: ["admin"],
+  //     },
+  //     {
+  //       name: "System Settings",
+  //       href: "/admin/settings",
+  //       roles: ["admin"],
+  //     },
+  //   ],
+  // },
 ];
 
 // Filter navigation items based on user role
@@ -194,11 +200,11 @@ const filteredNavItems = computed(() => {
     const hasAccess = item.roles.includes(userRole.value);
 
     // Also filter children if they exist
-    if (hasAccess && item.children) {
-      item.children = item.children.filter((child) =>
-        child.roles.includes(userRole.value)
-      );
-    }
+    // if (hasAccess && item.children) {
+    //   item.children = item.children.filter((child) =>
+    //     child.roles.includes(userRole.value)
+    //   );
+    // }
 
     return hasAccess;
   });

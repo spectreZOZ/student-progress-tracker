@@ -81,17 +81,28 @@ const router = createRouter({
     //     icon: "BookOpenIcon",
     //   },
     // },
-    // {
-    //   path: "/assignments",
-    //   name: "assignments",
-    //   component: () => import("@/views/AssignmentsView.vue"),
-    //   meta: {
-    //     requiresAuth: true,
-    //     roles: ["teacher", "student"],
-    //     title: "Assignments",
-    //     icon: "ClipboardDocumentListIcon",
-    //   },
-    // },
+    {
+      path: "/classrooms",
+      name: "Classrooms",
+      component: () => import("@/views/ClassroomsView.vue"),
+      meta: {
+        requiresAuth: true,
+        title: "Classrooms",
+        icon: "BookOpenIcon",
+        roles: ["admin", "teacher", "student"],
+      },
+    },
+    {
+      path: "/assignments",
+      name: "assignments",
+      component: () => import("@/views/AssignmentsView.vue"),
+      meta: {
+        requiresAuth: true,
+        roles: ["teacher", "student"],
+        title: "Assignments",
+        icon: "ClipboardDocumentListIcon",
+      },
+    },
     // {
     //   path: "/settings",
     //   name: "settings",
