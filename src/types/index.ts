@@ -7,18 +7,20 @@ export interface CreateClassroomData {
   teacher?: string;
 }
 
+export interface Teacher {
+  id: string;
+  _id?: string;
+  name: string;
+  email: string;
+}
+
 export interface Classroom {
   id: string;
   _id?: string;
   name: string;
   code: string;
   description: string;
-  teacher: {
-    id: string;
-    _id?: string;
-    name: string;
-    email: string;
-  };
+  teacher: Teacher;
   grade: number;
   academicYear: string;
   students?: any[];

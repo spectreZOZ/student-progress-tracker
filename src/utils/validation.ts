@@ -17,3 +17,11 @@ export const validateSearchQuery = (query: string): string => {
     ? sanitized.substring(0, maxLength)
     : sanitized;
 };
+
+export const errorAPIMessage = (err: any, message: string) => {
+  const error =
+    err.response?.data?.errors?.map((e: any) => e.msg).join(", ") ||
+    err.response?.data?.message ||
+    message;
+  return error;
+};

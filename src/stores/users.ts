@@ -20,7 +20,11 @@ export const useUsersStore = defineStore("users", {
     error: null as null | string,
     total: 0,
   }),
-
+  getters: {
+    isAdmin: (state) => state.user?.role === "admin",
+    isTeacher: (state) => state.user?.role === "teacher",
+    isStudent: (state) => state.user?.role === "student",
+  },
   actions: {
     async getAllUsers(params: UserQueryParams = {}) {
       try {

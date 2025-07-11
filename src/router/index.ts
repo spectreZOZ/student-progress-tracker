@@ -70,28 +70,6 @@ const router = createRouter({
         icon: "ChartBarIcon",
       },
     },
-    // {
-    //   path: "/courses",
-    //   name: "courses",
-    //   component: () => import("@/views/CoursesView.vue"),
-    //   meta: {
-    //     requiresAuth: true,
-    //     roles: ["admin", "teacher", "student"],
-    //     title: "Courses",
-    //     icon: "BookOpenIcon",
-    //   },
-    // },
-    {
-      path: "/classrooms",
-      name: "Classrooms",
-      component: () => import("@/views/ClassroomsView.vue"),
-      meta: {
-        requiresAuth: true,
-        title: "Classrooms",
-        icon: "BookOpenIcon",
-        roles: ["admin", "teacher", "student"],
-      },
-    },
     {
       path: "/assignments",
       name: "assignments",
@@ -103,50 +81,27 @@ const router = createRouter({
         icon: "ClipboardDocumentListIcon",
       },
     },
-    // {
-    //   path: "/settings",
-    //   name: "settings",
-    //   component: () => import("@/views/SettingsView.vue"),
-    //   meta: {
-    //     requiresAuth: true,
-    //     roles: ["admin", "teacher", "student", ],
-    //     title: "Settings",
-    //     icon: "Cog6ToothIcon",
-    //   },
-    // },
-    // {
-    //   path: "/admin",
-    //   name: "admin",
-    //   component: () => import("@/views/AdminView.vue"),
-    //   meta: {
-    //     requiresAuth: true,
-    //     roles: ["admin"],
-    //     title: "Administration",
-    //     icon: "ShieldCheckIcon",
-    //   },
-    //   children: [
-    //     {
-    //       path: "users",
-    //       name: "admin-users",
-    //       component: () => import("@/views/admin/UsersView.vue"),
-    //       meta: {
-    //         requiresAuth: true,
-    //         roles: ["admin"],
-    //         title: "User Management",
-    //       },
-    //     },
-    //     {
-    //       path: "settings",
-    //       name: "admin-settings",
-    //       component: () => import("@/views/admin/SettingsView.vue"),
-    //       meta: {
-    //         requiresAuth: true,
-    //         roles: ["admin"],
-    //         title: "System Settings",
-    //       },
-    //     },
-    //   ],
-    // },
+    {
+      path: "/classrooms",
+      name: "classrooms",
+      component: () => import("@/views/ClassroomsView.vue"),
+      meta: {
+        requiresAuth: true,
+        title: "Classrooms",
+        icon: "BookOpenIcon",
+        roles: ["admin", "teacher", "student"],
+      },
+    },
+    {
+      path: "/subjects", // Changed from /classrooms/subjects
+      name: "subjects",
+      component: () => import("@/views/SubjectsView.vue"),
+      meta: {
+        requiresAuth: true,
+        roles: ["admin", "teacher", "student"],
+        title: "Subjects",
+      },
+    },
     // Unauthorized access page
     {
       path: "/unauthorized",
@@ -213,9 +168,6 @@ router.beforeEach(async (to, _, next) => {
           ", "
         )}`
       );
-
-      // Show a toast notification (optional)
-      // You can implement a toast/notification system here
 
       return next({
         name: "unauthorized",
