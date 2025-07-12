@@ -29,7 +29,7 @@ export const useAuthStore = defineStore("auth", {
       email: string;
       password: string;
       role: string;
-      grade: number;
+      grade: number | undefined;
     }) {
       try {
         this.loading = true;

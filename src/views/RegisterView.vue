@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <div>
+        <div v-if="form.role === 'student'">
           <label
             for="grade"
             class="block text-sm font-medium text-gray-700 dark:text-white"
@@ -179,7 +179,10 @@ const form = ref({
 });
 
 const handleRegister = async () => {
-  const success = await authStore.register({ ...form.value });
+  const success = await authStore.register({
+    ...form.value,
+    grade: form.value.role === "student" ? form.value.grade : undefined,
+  });
 
   if (success) {
     router.push("/"); // Redirect after registration

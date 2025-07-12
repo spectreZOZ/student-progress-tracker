@@ -9,14 +9,6 @@
       Close
     </button>
 
-    <button
-      v-if="userRole === 'student'"
-      @click="$emit('edit')"
-      class="px-4 py-2 text-sm font-medium text-black dark:text-white bg-neutral-100 dark:bg-green-800 rounded hover:bg-neutral-200 dark:hover:bg-green-700 transition-colors"
-    >
-      Submit Assignment
-    </button>
-
     <div v-if="canEditAssignment" class="flex space-x-3">
       <button
         @click="$emit('edit')"

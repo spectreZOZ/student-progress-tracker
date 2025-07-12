@@ -326,7 +326,8 @@ const calculateAverageGrade = () => {
   };
 
   const total = props.subject.students.reduce(
-    (sum, student) => sum + (gradeValues[student?.grade] || 0),
+    (sum, student) =>
+      sum + (gradeValues[student?.grade as unknown as string] || 0),
     0
   );
 

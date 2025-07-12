@@ -102,6 +102,18 @@ const router = createRouter({
         title: "Subjects",
       },
     },
+
+    {
+      path: "/notifications",
+      name: "notifications",
+      component: () => import("@/views/NotificationsView.vue"),
+      meta: {
+        requiresAuth: true,
+        roles: ["admin", "teacher", "student"],
+        title: "Notifications",
+      },
+    },
+
     // Unauthorized access page
     {
       path: "/unauthorized",

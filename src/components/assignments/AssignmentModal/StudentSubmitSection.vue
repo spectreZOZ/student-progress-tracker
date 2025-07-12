@@ -67,8 +67,9 @@ const currentUserId = computed(() => authStore.user?._id);
 const hasSubmitted = computed(() => {
   return props.assignment.submissions?.some(
     (submission: any) =>
-      submission.student?.id === currentUserId.value ||
-      submission.student?._id === currentUserId.value
+      (submission.student?.id === currentUserId.value ||
+        submission.student?._id === currentUserId.value) &&
+      submission?.status === "submitted"
   );
 });
 

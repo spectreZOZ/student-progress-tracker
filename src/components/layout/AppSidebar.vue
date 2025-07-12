@@ -123,7 +123,7 @@ const navigationItems = [
     name: "Assignments",
     href: "/assignments",
     icon: ClipboardDocumentListIcon,
-    roles: ["teacher", "student", "admin"],
+    roles: ["teacher", "student"],
   },
 
   {

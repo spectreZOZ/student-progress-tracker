@@ -81,13 +81,6 @@
             </router-link>
           </p>
         </div>
-
-        <div class="text-sm text-center">
-          <p class="text-gray-600 dark:text-gray-400">Demo credentials:</p>
-          <p class="text-gray-500 dark:text-gray-500">
-            Email: any@email.com | Password: any
-          </p>
-        </div>
       </form>
     </div>
   </div>

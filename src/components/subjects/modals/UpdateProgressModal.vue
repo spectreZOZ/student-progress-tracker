@@ -240,7 +240,7 @@ const handleSubmit = async () => {
   try {
     await subjectStore.updateStudentProgress(
       props.subject.id,
-      props.student.student,
+      props.student.student.id,
       {
         progress: form.progress,
         grade: form.grade,

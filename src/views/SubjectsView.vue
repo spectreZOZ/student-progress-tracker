@@ -267,6 +267,7 @@ const emptyStateMessage = computed(() => {
       return "No subjects available";
   }
 });
+console.log(selectedSubject, "selectedSubject");
 
 const subjects = computed(() => {
   if (!subjectStore.subjects || subjectStore.subjects.length === 0) {

@@ -224,7 +224,7 @@ const canEdit = computed(
   () =>
     props.userRole === "admin" ||
     (props.userRole === "teacher" &&
-      props.subject.teacher._id === currentUser?.value?.id) // You'll need to check against actual user
+      props.subject.teacher._id === currentUser?.value?._id) // You'll need to check against actual user
 );
 
 const canDelete = computed(() => props.userRole === "admin");
@@ -233,6 +233,6 @@ const canViewStats = computed(
   () =>
     props.userRole === "admin" ||
     (props.userRole === "teacher" &&
-      props.subject.teacher._id === currentUser?.value?.id)
+      props.subject.teacher._id === currentUser?.value?._id)
 );
 </script>

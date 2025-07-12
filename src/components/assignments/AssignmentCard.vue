@@ -195,10 +195,12 @@ defineEmits<{
 
 const hasUserSubmitted = computed(() => {
   if (!props.assignment.submissions || !props.currentUserId) return false;
+
   return props.assignment.submissions.some(
     (submission: any) =>
-      submission.student?.id === props.currentUserId ||
-      submission.student?._id === props.currentUserId
+      (submission.student?.id === props.currentUserId ||
+        submission.student?._id === props.currentUserId) &&
+      submission?.status === "submitted"
   );
 });
 

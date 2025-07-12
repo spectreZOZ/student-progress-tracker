@@ -321,11 +321,15 @@ const emit = defineEmits<{
 const subjectStore = useSubjectStore();
 const authStore = useAuthStore();
 
+console.log("userRole", props.userRole);
+console.log("subject", props.subject);
+console.log("user", authStore.user);
+
 const canManageStudents = computed(
   () =>
     props.userRole === "admin" ||
     (props.userRole === "teacher" &&
-      props.subject?.teacher === authStore.user?.id)
+      props.subject?.teacher._id === authStore.user?._id)
 );
 
 const studentData = computed(() => {
